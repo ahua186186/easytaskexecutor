@@ -33,7 +33,7 @@ public class SendDataWorker extends Thread implements InitializingBean{
     
     private Worker worker = null;
     
-    private BootStrap bs=null;
+    private RushBootStrap bs=null;
     
     private boolean initStatus;
     
@@ -174,9 +174,9 @@ public class SendDataWorker extends Thread implements InitializingBean{
 			} 
         }
 		
-		bs = new BootStrap();
+		bs = new RushBootStrap();
 	    bs.initWorkers(10);
-	    worker = BootStrap.getWorker0();
+	    worker = RushBootStrap.getWorker0();
 	}
    
 }
