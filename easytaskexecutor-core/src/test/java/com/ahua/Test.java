@@ -1,6 +1,5 @@
 package com.ahua;
 
-import com.ahua.easytaskexecutor.core.BootStrap;
 import com.ahua.easytaskexecutor.core.Worker;
 
 import java.util.ArrayList;
@@ -11,17 +10,31 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 public class Test {
-
+/**
+ * @author Jason.Shen
+ * @version: V1.0
+ * @Title Test.java
+ * @Package com.ahua
+ * @Description 
+ * @date 2019/1/22 18:36
+ */ 
     public static void main(String[] args) {
         // 初始化老板和包工头 ,可以通过boss的addWork和removeWork动态的扩容和缩容
         int corePoolSize = Runtime.getRuntime().availableProcessors() + 1;
         int corePoolmaximumPoolSize = Runtime.getRuntime().availableProcessors() + 1;
         int maxQueueCapacity = 1024;
         // 扩容 当前机器IP执行扩容
-        List<Worker> masterWorkers4Running1 = BootStrap.getMasterWorkers();
-        // 是否已经上线
-        if (masterWorkers4Running1 == null || masterWorkers4Running1.size() == 0) {
-            BootStrap.addWorker(corePoolSize, corePoolmaximumPoolSize, maxQueueCapacity, true);
+        PanicServerBootStrap panicServer = PanicServerBootStrap.getInstance().initBoss();
+        panicServer.goOnline(corePoolmaximumPoolSize);
+        // 反复上线检测线程池是否重复增加
+        for (int a = 1; a < 1000; a++) {
+            new Runnable() {
+                @Override
+                public void run() {
+                    PanicServerBootStrap panicServer2 = PanicServerBootStrap.getInstance().initBoss();
+                    panicServer2.goOnline(9);
+                }
+            }.run();
         }
         /************************ 给包工头分配CPU密集型任务包start ************************/
 
@@ -35,8 +48,8 @@ public class Test {
             handler.setTaskList(tasklist);
             handler.setCdl(cdl);
             // 随机发送任务包给包工头
-            List<Worker> workers = BootStrap.getMasterWorkers();
-            if (workers != null && !workers.isEmpty()) {
+            List<Worker> workers = panicServer.getMasterWorkers(panicServer.getBoss());
+            if (workers != null && workers.size() > 0) {
                 Collections.shuffle(workers);
                 Worker worker = workers.get(0);
                 handler.setWorker(worker);
@@ -53,17 +66,7 @@ public class Test {
         /************************ 给包工头分配CPU密集型任务包end ************************/
 
         // 缩容 当前机器IP执行下线
-        List<Worker> masterWorkers4Running = BootStrap.getMasterWorkers();
-        if (masterWorkers4Running != null || masterWorkers4Running.size() > 0) {
-            for (Worker work : masterWorkers4Running) {
-                BootStrap.getBoss().removeMasterWorker(work);
-            }
-            List<Worker> slaveWorkers4Running = BootStrap.getSlaveWorkers();
-            for (Worker work : slaveWorkers4Running) {
-                BootStrap.getBoss().removeSlaveWorker(work);
-            }
-            BootStrap.getBoss().getBossWorkerExecutor().shutdown();
-        }
+        panicServer.offline();
 
     }
 

@@ -3,9 +3,6 @@ package com.ahua.easytaskexecutor.core;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jason.shen
@@ -27,13 +24,7 @@ public class Boss {
     /**
      * 老板的工作线程队列
      */
-    private final ExecutorService bossWorkerExecutor = new ThreadPoolExecutor(1,
-                                                                              1,
-                                                                              0L,
-                                                                              TimeUnit.MILLISECONDS,
-                                                                              new LinkedBlockingQueue<Runnable>(10),
-                                                                              new NamedThreadFactory("EasyWorker"),
-                                                                              new ThreadPoolExecutor.AbortPolicy());
+    private ExecutorService bossWorkerExecutor;
 
     private static class InstanceHolder {
         public static Boss boss = new Boss();
@@ -135,4 +126,14 @@ public class Boss {
         return bossWorkerExecutor;
     }
 
+
+    /**
+     * 设置老板的工作线程执行器
+     *
+     * @param bossWorkerExecutor
+     *            工作线程执行器
+     */
+    public void setBossWorkerExecutor(ExecutorService bossWorkerExecutor) {
+        this.bossWorkerExecutor = bossWorkerExecutor;
+    }
 }
